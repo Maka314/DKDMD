@@ -8,7 +8,10 @@ use std::path::PathBuf;
 /// 配置结构
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
+    #[serde(default)]
     pub models: std::collections::HashMap<String, ModelConfig>,
+    #[serde(default)]
+    pub tool_bindings: std::collections::HashMap<String, String>,
 }
 
 /// 获取配置目录
@@ -50,6 +53,7 @@ pub fn create_default_config(path: &PathBuf) -> Config {
 
     let default_config = Config {
         models: std::collections::HashMap::new(),
+        tool_bindings: std::collections::HashMap::new(),
     };
 
     if let Err(e) = fs::write(path, serde_json::to_string_pretty(&default_config).unwrap()) {
