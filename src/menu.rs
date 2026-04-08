@@ -38,7 +38,7 @@ pub fn menu_mode() {
                 handle_model_management(&mut config);
             }
             Ok("🛠️  启动工具") => {
-                handle_tool_launch(&mut config);
+                handle_tool_launch(&config);
             }
             Ok("⚙️  显示配置") => {
                 println!("\n📋 当前配置:");
@@ -107,38 +107,22 @@ fn handle_model_management(config: &mut Config) {
 }
 
 /// 处理工具启动
-fn handle_tool_launch(config: &mut Config) {
-    if config.models.is_empty() {
-        println!("❌ 没有可用模型，请先添加模型");
+fn handle_tool_launch(config: &Config) {
+    let tool_options: Vec<String> = config
+        .models
+        .iter()
+        .map(|(name, _)| format!("  {}", name))
+        .collect();
+
+    if tool_options.is_empty() {
+        println!("❌ 没有可用的工具");
         let _ = Text::new("按回车键继续...").prompt();
         return;
     }
 
-    let tools = [
-        ("ClaudeCode", "claudecode"),
-        ("Codex", "codex"),
-    ];
-
-    let tool_options: Vec<String> = tools
-        .iter()
-        .map(|(display_name, key)| {
-            let current_model = config
-                .tool_bindings
-                .get(*key)
-                .map(|s| s.as_str())
-                .unwrap_or("未设置");
-            format!("  {} ({})", display_name, current_model)
-        })
-        .collect();
-
     match Select::new("选择要启动的工具:", tool_options).prompt() {
         Ok(selected) => {
-            let selected_tool = selected.trim();
-            let tool_name = if selected_tool.starts_with("ClaudeCode") {
-                "claudecode"
-            } else {
-                "codex"
-            };
+            let tool_name = selected.trim().to_string();
 
             let model_names: Vec<String> = config
                 .models
@@ -149,12 +133,8 @@ fn handle_tool_launch(config: &mut Config) {
             match Select::new("选择要使用的模型:", model_names).prompt() {
                 Ok(model_selected) => {
                     let model_name = model_selected.trim().to_string();
-                    config
-                        .tool_bindings
-                        .insert(tool_name.to_string(), model_name.clone());
-                    save_config(config).ok();
 
-                    if let Err(e) = run_tool(config, tool_name, &model_name) {
+                    if let Err(e) = run_tool(&config, &tool_name, &model_name) {
                         eprintln!("❌ 错误: {}", e);
                     }
                     let _ = Text::new("按回车键继续...").prompt();
