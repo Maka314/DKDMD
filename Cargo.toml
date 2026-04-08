@@ -2,6 +2,15 @@
 name = "DKDMD"
 version = "0.1.0"
 edition = "2021"
+description = "どこでもドア (Dokodemo Doa) - 让本地 AI 应用轻松接入任何 API 端点"
+license = "MIT"
+authors = ["Maka314"]
+repository = "https://github.com/Maka314/DKDMD"
+homepage = "https://github.com/Maka314/DKDMD"
+
+[[bin]]
+name = "dkdmd"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
@@ -12,3 +21,13 @@ anyhow = "1.0"
 ctrlc = { version = "3.4", features = ["termination"] }
 regex = "1.10"
 inquire = "0.7"
+
+[package.metadata.deb]
+maintainer = "Maka314"
+copyright = "2026, Maka314"
+section = "utils"
+priority = "optional"
+extended-description = "DKDMD (どこでもドア) 让本地 AI 应用轻松接入任何 API 端点，无需繁琐配置。"
+assets = [
+    ["target/release/dkdmd", "usr/bin/", "755"],
+]
