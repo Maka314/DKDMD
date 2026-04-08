@@ -32,7 +32,7 @@ jobs:
           path: dist/dkdmd-linux-amd64.tar.gz
 
   build-macos-intel:
-    runs-on: macos-13
+    runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -51,7 +51,7 @@ jobs:
           path: dist/dkdmd-macos-intel.tar.gz
 
   build-macos-arm:
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
