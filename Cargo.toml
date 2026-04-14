@@ -2,6 +2,8 @@
 name = "DKDMD"
 version = "0.1.0"
 edition = "2021"
+description = "Dokodemo Doa - A tool to let local AI apps easily connect to any API endpoint"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
@@ -12,3 +14,13 @@ anyhow = "1.0"
 ctrlc = { version = "3.4", features = ["termination"] }
 regex = "1.10"
 inquire = "0.7"
+
+[package.metadata.deb]
+maintainer = "Mingchen Ju <traveller31415@gmail.com>"
+copyright = "2026 Mingchen Ju"
+depends = "$auto"
+section = "utility"
+priority = "optional"
+assets = [
+    ["target/release/DKDMD", "usr/bin/", "755"],
+]
