@@ -2,14 +2,57 @@ name: Release
 
 on:
   push:
-    tags:
+    branches:
+      - main
+     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  # ── Step 1: determine whether the version changed (branch push only) ──────
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.version.outputs.should_release }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect version / set tag
+        id: version
+        run: |
+          CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          TAG="v${CURRENT}"
+
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/* ]]; then
+            # Triggered by a manual tag push – always release
+            TAG="${GITHUB_REF#refs/tags/}"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          else
+            # Branch push – only release if version actually changed
+            PREVIOUS=$(git show HEAD~1:Cargo.toml 2>/dev/null | grep '^version' | head -1 | sed 's/.*"\(.*\)".*/\1/' || echo "")
+            if [[ "$CURRENT" != "$PREVIOUS" ]]; then
+              echo "should_release=true" >> "$GITHUB_OUTPUT"
+              echo "Version changed: $PREVIOUS -> $CURRENT"
+            else
+              echo "should_release=false" >> "$GITHUB_OUTPUT"
+              echo "Version unchanged: $CURRENT"
+            fi
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+  # ── Step 2: build deb (amd64 + arm64) ────────────────────────────────────
   build-deb:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
     strategy:
       matrix:
         include:
@@ -29,6 +72,9 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
 
       - name: Install cross-compilation tools (arm64)
         if: matrix.arch == 'arm64'
@@ -50,8 +96,10 @@ jobs:
           name: deb-${{ matrix.arch }}
           path: target/${{ matrix.target }}/debian/*.deb
 
+  # ── Step 3: create GitHub Release ────────────────────────────────────────
   release:
-    needs: build-deb
+    needs: [check-version, build-deb]
+    if: needs.check-version.outputs.should_release == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -66,5 +114,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.check-version.outputs.tag }}
+          name: DKDMD ${{ needs.check-version.outputs.tag }}
           files: artifacts/**/*.deb
           generate_release_notes: true
+

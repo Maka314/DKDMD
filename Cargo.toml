@@ -1,6 +1,6 @@
 [package]
 name = "DKDMD"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Dokodemo Doa - A tool to let local AI apps easily connect to any API endpoint"
 license = "MIT"
