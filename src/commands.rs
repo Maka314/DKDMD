@@ -4,9 +4,9 @@ use crate::tools::run_tool;
 use crate::cli::Cli;
 
 /// 配置模式
-pub fn config_mode_cli(model_name: &str, path: &str, port: Option<u16>) {
+pub fn config_mode_cli(model_name: &str, base_url: &str) {
     let mut config = load_config();
-    add_model_config(&mut config, model_name.to_string(), path.to_string(), port);
+    add_model_config(&mut config, model_name.to_string(), base_url.to_string());
     save_config(&config).ok();
 }
 

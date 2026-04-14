@@ -4,25 +4,20 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModelConfig {
     pub name: String,
-    pub path: String,
-    pub port: Option<u16>,
-    pub api_url: Option<String>,
+    pub base_url: String,
 }
 
 /// 添加模型配置
 pub fn add_model_config(
     config: &mut crate::config::Config,
     name: String,
-    path: String,
-    port: Option<u16>,
+    base_url: String,
 ) {
     config.models.insert(
         name.clone(),
         ModelConfig {
             name,
-            path,
-            port,
-            api_url: None,
+            base_url,
         },
     );
 }

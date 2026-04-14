@@ -84,18 +84,14 @@ fn handle_model_management(config: &mut Config) {
             if selected == "  ➕ 添加新模型" {
                 match Text::new("输入模型名称:").prompt() {
                     Ok(model_name) if !model_name.is_empty() => {
-                        match Text::new("输入模型路径 (或 API URL):").prompt() {
-                            Ok(path) => {
-                                let port = match Text::new("输入端口 (可选, 直接回车跳过):").prompt() {
-                                    Ok(port_str) if !port_str.is_empty() => port_str.parse().ok(),
-                                    _ => None,
-                                };
-
-                                add_model_config(config, model_name, path, port);
+                        match Text::new("输入 Base URL:").prompt() {
+                            Ok(base_url) if !base_url.is_empty() => {
+                                add_model_config(config, model_name, base_url);
+                                save_config(config).ok();
                                 println!("✅ 模型已添加");
                                 let _ = Text::new("按回车键继续...").prompt();
                             }
-                            Err(_) => {}
+                            _ => {}
                         }
                     }
                     _ => {}

@@ -18,10 +18,10 @@ fn main() -> anyhow::Result<()> {
         }
         "config" => {
             if let Some(model) = &cli.model {
-                if let Some(path) = &cli.config {
-                    config_mode_cli(model, path.to_str().unwrap(), cli.port);
+                if let Some(base_url) = &cli.base_url {
+                    config_mode_cli(model, base_url);
                 } else {
-                    eprintln!("❌ 错误: 配置模式需要 --model 和 --config 参数");
+                    eprintln!("❌ 错误: 配置模式需要 --model 和 --base-url 参数");
                     std::process::exit(1);
                 }
             } else {
