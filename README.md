@@ -6,7 +6,32 @@
 
 让本地 AI 应用轻松接入任何 API 端点
 
+[![GitHub Release](https://img.shields.io/github/v/release/Maka314/DKDMD)](https://github.com/Maka314/DKDMD/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 </div>
+
+## 📦 安装
+
+### Ubuntu / Debian（一键安装）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Maka314/DKDMD/main/install.sh | sudo bash
+```
+
+### 手动下载 .deb 包
+
+从 [Releases](https://github.com/Maka314/DKDMD/releases) 页面下载最新的 `.deb` 文件，然后：
+
+```bash
+sudo apt install ./dkdmd_*_amd64.deb
+```
+
+### 卸载
+
+```bash
+sudo apt remove dkdmd
+```
 
 ## 📖 项目简介
 
@@ -36,37 +61,6 @@ DKDMD 适用于以下场景：
 - 想要简化本地开发环境的 API 配置流程
 
 ## 🚀 快速开始
-
-### 前置要求
-
-- Rust 1.70 或更高版本
-- Cargo（Rust 包管理器）
-
-### 从源码构建
-
-```bash
-# 克隆仓库
-git clone https://github.com/Maka314/DKDMD.git
-cd DKDMD
-
-# 构建项目
-cargo build --release
-
-# 运行
-cargo run --release
-```
-
-## 📦 安装
-
-### 方式一：从源码安装
-
-```bash
-cargo install --path .
-```
-
-### 方式二：使用预编译二进制
-
-> 待发布后提供下载链接
 
 ## 💡 使用说明
 
