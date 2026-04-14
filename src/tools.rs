@@ -7,16 +7,29 @@ pub fn run_tool(config: &Config, tool_name: &str, model_name: &str) -> anyhow::R
     if let Some(model_config) = get_model_config(config, model_name) {
         // 在命令模式下，使用默认的 codegen 工具
         let tool_program = if tool_name == "codex" {
-            "codegen".to_string()
-        } else if tool_name == "claudecode" {
-            "claudecode".to_string()
+            "codex".to_string()
+        } else if tool_name == "claude" {
+            "claude".to_string()
         } else {
             tool_name.to_string()
         };
 
         let mut cmd = Command::new(&tool_program);
 
-        cmd.arg("--api-url").arg(&model_config.base_url);
+        // Claude Code 通过环境变量配置 API 端点和模型
+        if tool_name == "claude" {
+            cmd.env("ANTHROPIC_BASE_URL", &model_config.base_url);
+            if let Some(api_key) = &model_config.api_key {
+                cmd.env("ANTHROPIC_API_KEY", api_key);
+            }
+            cmd.arg("--model").arg(&model_config.name);
+        } else if tool_name == "codex" {
+            cmd.env("OPENAI_BASE_URL", &model_config.base_url);
+            if let Some(api_key) = &model_config.api_key {
+                cmd.env("OPENAI_API_KEY", api_key);
+            }
+            cmd.arg("--model").arg(&model_config.name);
+        }
 
         cmd.stdin(Stdio::piped());
         cmd.stdout(Stdio::inherit());

@@ -19,7 +19,7 @@ fn main() -> anyhow::Result<()> {
         "config" => {
             if let Some(model) = &cli.model {
                 if let Some(base_url) = &cli.base_url {
-                    config_mode_cli(model, base_url);
+                    config_mode_cli(model, base_url, cli.api_key.as_deref());
                 } else {
                     eprintln!("❌ 错误: 配置模式需要 --model 和 --base-url 参数");
                     std::process::exit(1);

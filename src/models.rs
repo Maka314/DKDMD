@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 pub struct ModelConfig {
     pub name: String,
     pub base_url: String,
+    #[serde(default)]
+    pub api_key: Option<String>,
 }
 
 /// 添加模型配置
@@ -12,12 +14,14 @@ pub fn add_model_config(
     config: &mut crate::config::Config,
     name: String,
     base_url: String,
+    api_key: Option<String>,
 ) {
     config.models.insert(
         name.clone(),
         ModelConfig {
             name,
             base_url,
+            api_key,
         },
     );
 }

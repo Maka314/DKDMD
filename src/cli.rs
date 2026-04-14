@@ -18,6 +18,10 @@ pub struct Cli {
     #[arg(short, long)]
     pub base_url: Option<String>,
 
+    /// API Key
+    #[arg(short = 'k', long)]
+    pub api_key: Option<String>,
+
     /// 命令模式
     #[arg(long, default_value = "menu")]
     pub command: String,

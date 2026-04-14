@@ -2,6 +2,15 @@ use crate::config::{load_config, save_config, Config};
 use crate::models::add_model_config;
 use crate::tools::run_tool;
 use inquire::{Select, Text, Confirm};
+use std::process::Command;
+
+fn which_exists(program: &str) -> bool {
+    Command::new("which")
+        .arg(program)
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
 
 /// 清屏
 pub fn clear_screen() {
@@ -86,7 +95,11 @@ fn handle_model_management(config: &mut Config) {
                     Ok(model_name) if !model_name.is_empty() => {
                         match Text::new("输入 Base URL:").prompt() {
                             Ok(base_url) if !base_url.is_empty() => {
-                                add_model_config(config, model_name, base_url);
+                                let api_key = match Text::new("输入 API Key (可选, 直接回车跳过):").prompt() {
+                                    Ok(key) if !key.is_empty() => Some(key),
+                                    _ => None,
+                                };
+                                add_model_config(config, model_name, base_url, api_key);
                                 save_config(config).ok();
                                 println!("✅ 模型已添加");
                                 let _ = Text::new("按回车键继续...").prompt();
@@ -111,19 +124,25 @@ fn handle_tool_launch(config: &mut Config) {
     }
 
     let tools = [
-        ("ClaudeCode", "claudecode"),
+        ("ClaudeCode", "claude"),
         ("Codex", "codex"),
     ];
 
     let tool_options: Vec<String> = tools
         .iter()
         .map(|(display_name, key)| {
-            let current_model = config
-                .tool_bindings
-                .get(*key)
-                .map(|s| s.as_str())
-                .unwrap_or("未设置");
-            format!("  {} ({})", display_name, current_model)
+            let bin_name = if *key == "codex" { "codegen" } else { *key };
+            let installed = which_exists(bin_name);
+            let status = if !installed {
+                "未安装".to_string()
+            } else {
+                config
+                    .tool_bindings
+                    .get(*key)
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| "未设置".to_string())
+            };
+            format!("  {} ({})", display_name, status)
         })
         .collect();
 
@@ -131,7 +150,7 @@ fn handle_tool_launch(config: &mut Config) {
         Ok(selected) => {
             let selected_tool = selected.trim();
             let tool_name = if selected_tool.starts_with("ClaudeCode") {
-                "claudecode"
+                "claude"
             } else {
                 "codex"
             };
