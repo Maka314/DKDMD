@@ -37,27 +37,26 @@ pub fn run_tool(config: &Config, tool_name: &str, model_name: &str) -> anyhow::R
 
         let mut child = cmd.spawn()?;
 
-        eprintln!("\n🚀 启动工具: {}", tool_program);
-        eprintln!("🔗 使用模型: {}", model_name);
-        eprintln!("🖥️  进程 PID: {}\n", child.id());
+        eprintln!("\n🚀 Launching: {}", tool_program);
+        eprintln!("🔗 Model: {}", model_name);
+        eprintln!("🖥️  PID: {}\n", child.id());
 
-        // 等待进程退出
         match child.wait() {
             Ok(status) => {
                 if status.success() {
-                    eprintln!("\n✅ 工具已正常退出");
+                    eprintln!("\n✅ Tool exited normally");
                 } else {
-                    eprintln!("\n⚠️  工具退出状态: {:?}", status);
+                    eprintln!("\n⚠️  Tool exited with status: {:?}", status);
                 }
             }
             Err(e) => {
-                eprintln!("\n❌ 等待进程时出错: {}", e);
+                eprintln!("\n❌ Error waiting for process: {}", e);
             }
         }
 
         Ok(())
     } else {
-        eprintln!("⚠️  模型 {} 未配置", model_name);
-        Err(anyhow::anyhow!("模型未配置"))
+        eprintln!("⚠️  Model '{}' not configured", model_name);
+        Err(anyhow::anyhow!("model not configured"))
     }
 }

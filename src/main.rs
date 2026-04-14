@@ -21,11 +21,11 @@ fn main() -> anyhow::Result<()> {
                 if let Some(base_url) = &cli.base_url {
                     config_mode_cli(model, base_url, cli.api_key.as_deref());
                 } else {
-                    eprintln!("❌ 错误: 配置模式需要 --model 和 --base-url 参数");
+                    eprintln!("❌ Error: config mode requires --model and --base-url");
                     std::process::exit(1);
                 }
             } else {
-                eprintln!("❌ 错误: 配置模式需要 --model 参数");
+                eprintln!("❌ Error: config mode requires --model");
                 std::process::exit(1);
             }
         }
@@ -33,8 +33,8 @@ fn main() -> anyhow::Result<()> {
             command_mode_cli(&cli)?;
         }
         _ => {
-            eprintln!("❌ 未知命令: {}", cli.command);
-            eprintln!("可用命令: menu, config, run");
+            eprintln!("❌ Unknown command: {}", cli.command);
+            eprintln!("Available commands: menu, config, run");
             std::process::exit(1);
         }
     }

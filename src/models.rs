@@ -4,8 +4,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModelConfig {
     pub name: String,
+    #[serde(alias = "path")]
     pub base_url: String,
-    #[serde(default)]
+    #[serde(default, alias = "api_url")]
     pub api_key: Option<String>,
 }
 

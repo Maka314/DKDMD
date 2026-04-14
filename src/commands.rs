@@ -18,12 +18,12 @@ pub fn command_mode_cli(cli: &Cli) -> anyhow::Result<()> {
         if let Some(model) = &cli.model {
             run_tool(&config, tool, model)?;
         } else {
-            eprintln!("❌ 错误: 命令模式需要 --model 参数");
-            return Err(anyhow::anyhow!("缺少 --model 参数"));
+            eprintln!("❌ Error: run mode requires --model");
+            return Err(anyhow::anyhow!("missing --model"));
         }
     } else {
-        eprintln!("❌ 错误: 命令模式需要 --tool 参数");
-        return Err(anyhow::anyhow!("缺少 --tool 参数"));
+        eprintln!("❌ Error: run mode requires --tool");
+        return Err(anyhow::anyhow!("missing --tool"));
     }
 
     Ok(())

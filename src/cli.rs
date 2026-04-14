@@ -1,16 +1,16 @@
 use clap::Parser;
 
-/// DKDMD - 本地 AI 工具管理器
+/// DKDMD - Local AI Tool Manager
 #[derive(Parser)]
 #[command(name = "dkdmd")]
 #[command(author = "DKDMD Team")]
-#[command(about = "本地 AI 工具管理器 - 配置和管理本地 AI 工具", long_about = None)]
+#[command(about = "Dokodemo Doa - Connect local AI apps to any API endpoint", long_about = None)]
 pub struct Cli {
-    /// 模型名称
+    /// Model name
     #[arg(short, long)]
     pub model: Option<String>,
 
-    /// 工具名称
+    /// Tool name
     #[arg(short, long)]
     pub tool: Option<String>,
 
@@ -22,7 +22,7 @@ pub struct Cli {
     #[arg(short = 'k', long)]
     pub api_key: Option<String>,
 
-    /// 命令模式
+    /// Command mode
     #[arg(long, default_value = "menu")]
     pub command: String,
 }

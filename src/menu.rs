@@ -23,51 +23,83 @@ pub fn menu_mode() {
     let mut running = true;
 
     ctrlc::set_handler(|| {
-        eprintln!("\n\n👋 感谢使用 DKDMD!");
+        eprintln!("\n\n👋 Goodbye!");
         std::process::exit(0);
     })
-    .expect("无法设置 Ctrl+C handler");
+    .expect("Failed to set Ctrl+C handler");
 
     while running {
         clear_screen();
         println!("╔═════════════════════════════════════════╗");
-        println!("║      任意门 - 本地 AI 工具管理器        ║");
+        println!("║         DKDMD - AI Tool Manager         ║");
         println!("╚═════════════════════════════════════════╝\n");
 
         let menu_options = vec![
-            "📋 添加/管理模型",
-            "🛠️  启动工具",
-            "⚙️  显示配置",
-            "🗑️  清除配置",
-            "👋 退出",
+            "📋 Manage Models",
+            "🛠️  Launch Tool",
+            "⚙️  Show Config",
+            "🗑️  Clear Config",
+            "👋 Exit",
         ];
 
-        match Select::new("请选择操作:", menu_options).prompt() {
-            Ok("📋 添加/管理模型") => {
+        match Select::new("Select an action:", menu_options).prompt() {
+            Ok("📋 Manage Models") => {
                 handle_model_management(&mut config);
             }
-            Ok("🛠️  启动工具") => {
+            Ok("🛠️  Launch Tool") => {
                 handle_tool_launch(&mut config);
             }
-            Ok("⚙️  显示配置") => {
-                println!("\n📋 当前配置:");
-                println!("{:#?}", config);
-                let _ = Text::new("按回车键继续...").prompt();
+            Ok("⚙️  Show Config") => {
+                println!("\n⚙️  Configuration\n");
+                if config.models.is_empty() {
+                    println!("  No models configured.");
+                } else {
+                    println!("  Models ({})", config.models.len());
+                    println!("  {}", "─".repeat(38));
+                    for (key, m) in &config.models {
+                        let bound_tool = config.tool_bindings
+                            .iter()
+                            .filter(|(_, v)| v.as_str() == key)
+                            .map(|(t, _)| t.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", ");
+                        println!("  🤖 {}", m.name);
+                        println!("     Base URL : {}", m.base_url);
+                        match &m.api_key {
+                            Some(_) => println!("     API Key  : ••••••••"),
+                            None    => println!("     API Key  : (none)"),
+                        }
+                        if !bound_tool.is_empty() {
+                            println!("     Used by  : {}", bound_tool);
+                        }
+                        println!();
+                    }
+                }
+                if !config.tool_bindings.is_empty() {
+                    println!("  Tool Bindings");
+                    println!("  {}", "─".repeat(38));
+                    for (tool, model) in &config.tool_bindings {
+                        println!("  🛠️  {:10} → {}", tool, model);
+                    }
+                    println!();
+                }
+                let _ = Text::new("Press Enter to continue...").prompt();
             }
-            Ok("🗑️  清除配置") => {
-                if let Ok(true) = Confirm::new("⚠️  确定要清除所有配置吗?")
+            Ok("🗑️  Clear Config") => {
+                if let Ok(true) = Confirm::new("⚠️  Clear all configuration?")
                     .with_default(false)
                     .prompt()
                 {
                     config.models.clear();
+                    config.tool_bindings.clear();
                     save_config(&config).ok();
-                    println!("✅ 配置已清除");
-                    let _ = Text::new("按回车键继续...").prompt();
+                    println!("✅ Config cleared");
+                    let _ = Text::new("Press Enter to continue...").prompt();
                 }
             }
-            Ok("👋 退出") => {
+            Ok("👋 Exit") => {
                 running = false;
-                println!("\n👋 感谢使用 DKDMD!");
+                println!("\n👋 Goodbye!");
             }
             Err(_) => {
                 running = false;
@@ -86,23 +118,23 @@ fn handle_model_management(config: &mut Config) {
         .collect();
 
     let mut options = model_options.clone();
-    options.push("  ➕ 添加新模型".to_string());
+    options.push("  ➕ Add new model".to_string());
 
-    match Select::new("选择要管理的模型:", options).prompt() {
+    match Select::new("Select a model to manage:", options).prompt() {
         Ok(selected) => {
-            if selected == "  ➕ 添加新模型" {
-                match Text::new("输入模型名称:").prompt() {
+            if selected == "  ➕ Add new model" {
+                match Text::new("Model name:").prompt() {
                     Ok(model_name) if !model_name.is_empty() => {
-                        match Text::new("输入 Base URL:").prompt() {
+                        match Text::new("Base URL:").prompt() {
                             Ok(base_url) if !base_url.is_empty() => {
-                                let api_key = match Text::new("输入 API Key (可选, 直接回车跳过):").prompt() {
+                                let api_key = match Text::new("API Key (optional, press Enter to skip):").prompt() {
                                     Ok(key) if !key.is_empty() => Some(key),
                                     _ => None,
                                 };
                                 add_model_config(config, model_name, base_url, api_key);
                                 save_config(config).ok();
-                                println!("✅ 模型已添加");
-                                let _ = Text::new("按回车键继续...").prompt();
+                                println!("✅ Model added");
+                                let _ = Text::new("Press Enter to continue...").prompt();
                             }
                             _ => {}
                         }
@@ -118,42 +150,68 @@ fn handle_model_management(config: &mut Config) {
 /// 处理工具启动
 fn handle_tool_launch(config: &mut Config) {
     if config.models.is_empty() {
-        println!("❌ 没有可用模型，请先添加模型");
-        let _ = Text::new("按回车键继续...").prompt();
+        println!("❌ No models configured. Please add a model first.");
+        let _ = Text::new("Press Enter to continue...").prompt();
         return;
     }
 
     let tools = [
-        ("ClaudeCode", "claude"),
-        ("Codex", "codex"),
+        ("ClaudeCode", "claude",  "curl -fsSL https://claude.ai/install.sh | bash"),
+        ("Codex",      "codex",   "npm i -g @openai/codex"),
     ];
 
     let tool_options: Vec<String> = tools
         .iter()
-        .map(|(display_name, key)| {
-            let bin_name = if *key == "codex" { "codegen" } else { *key };
-            let installed = which_exists(bin_name);
+        .map(|(display_name, key, _install_cmd)| {
+            let installed = which_exists(key);
             let status = if !installed {
-                "未安装".to_string()
+                "not installed".to_string()
             } else {
                 config
                     .tool_bindings
                     .get(*key)
                     .map(|s| s.to_string())
-                    .unwrap_or_else(|| "未设置".to_string())
+                    .unwrap_or_else(|| "not configured".to_string())
             };
             format!("  {} ({})", display_name, status)
         })
         .collect();
 
-    match Select::new("选择要启动的工具:", tool_options).prompt() {
+    match Select::new("Select a tool to launch:", tool_options).prompt() {
         Ok(selected) => {
             let selected_tool = selected.trim();
-            let tool_name = if selected_tool.starts_with("ClaudeCode") {
-                "claude"
+            let (tool_name, install_cmd) = if selected_tool.starts_with("ClaudeCode") {
+                ("claude", tools[0].2)
             } else {
-                "codex"
+                ("codex", tools[1].2)
             };
+
+            // Tool not installed: show install command and prompt user
+            if !which_exists(tool_name) {
+                println!("\n⚠️  This tool is not installed. Install command:");
+                println!("\n    {}\n", install_cmd);
+                if let Ok(true) = Confirm::new("Run the install command now?")
+                    .with_default(true)
+                    .prompt()
+                {
+                    let status = std::process::Command::new("sh")
+                        .args(["-c", install_cmd])
+                        .stdin(std::process::Stdio::inherit())
+                        .stdout(std::process::Stdio::inherit())
+                        .stderr(std::process::Stdio::inherit())
+                        .status();
+                    match status {
+                        Ok(s) if s.success() => {
+                            println!("\n✅ Installation successful!");
+                        }
+                        _ => {
+                            println!("\n❌ Installation failed. Run manually: {}", install_cmd);
+                        }
+                    }
+                }
+                let _ = Text::new("Press Enter to continue...").prompt();
+                return;
+            }
 
             let model_names: Vec<String> = config
                 .models
@@ -161,7 +219,7 @@ fn handle_tool_launch(config: &mut Config) {
                 .map(|(name, _)| format!("  {}", name))
                 .collect();
 
-            match Select::new("选择要使用的模型:", model_names).prompt() {
+            match Select::new("Select a model:", model_names).prompt() {
                 Ok(model_selected) => {
                     let model_name = model_selected.trim().to_string();
                     config
@@ -170,9 +228,9 @@ fn handle_tool_launch(config: &mut Config) {
                     save_config(config).ok();
 
                     if let Err(e) = run_tool(config, tool_name, &model_name) {
-                        eprintln!("❌ 错误: {}", e);
+                        eprintln!("❌ Error: {}", e);
                     }
-                    let _ = Text::new("按回车键继续...").prompt();
+                    let _ = Text::new("Press Enter to continue...").prompt();
                 }
                 Err(_) => {}
             }
