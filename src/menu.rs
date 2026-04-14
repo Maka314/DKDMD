@@ -156,7 +156,7 @@ fn handle_tool_launch(config: &mut Config) {
     }
 
     let tools = [
-        ("ClaudeCode", "claude",  "curl -fsSL https://claude.ai/install.sh | bash"),
+        ("ClaudeCode", "claude",  "npm install -g @anthropic-ai/claude-code"),
         ("Codex",      "codex",   "npm i -g @openai/codex"),
     ];
 

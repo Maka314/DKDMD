@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::models::get_model_config;
+use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// 启动工具
@@ -24,14 +25,28 @@ pub fn run_tool(config: &Config, tool_name: &str, model_name: &str) -> anyhow::R
             }
             cmd.arg("--model").arg(&model_config.name);
         } else if tool_name == "codex" {
-            cmd.env("OPENAI_BASE_URL", &model_config.base_url);
+            // 启动前将 API key 写入 codex 凭证存储，跳过登录初始化界面
             if let Some(api_key) = &model_config.api_key {
+                let mut login_cmd = Command::new("codex");
+                login_cmd.args(["login", "--with-api-key"]);
+                login_cmd.stdin(Stdio::piped());
+                login_cmd.stdout(Stdio::null());
+                login_cmd.stderr(Stdio::null());
+                if let Ok(mut login_child) = login_cmd.spawn() {
+                    if let Some(mut stdin) = login_child.stdin.take() {
+                        let _ = stdin.write_all(api_key.as_bytes());
+                    }
+                    let _ = login_child.wait();
+                }
                 cmd.env("OPENAI_API_KEY", api_key);
             }
+            // codex 使用 -c 参数覆盖配置
+            cmd.arg("-c").arg("model_provider=openai");
+            cmd.arg("-c").arg(format!("openai_base_url=\"{}\"", model_config.base_url));
             cmd.arg("--model").arg(&model_config.name);
         }
 
-        cmd.stdin(Stdio::piped());
+        cmd.stdin(Stdio::inherit());
         cmd.stdout(Stdio::inherit());
         cmd.stderr(Stdio::inherit());
 
