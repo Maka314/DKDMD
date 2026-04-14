@@ -38,7 +38,7 @@ esac
 # Get latest release tag
 info "Fetching latest release info..."
 LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
-    | grep '"tag_name"' | head -1 | sed -E 's/.*"tag_name":\s*"([^"]+)".*/\1/')
+    | grep '"tag_name"' | head -1 | sed -E 's/.*"tag_name":[[:space:]]*"([^"]+)".*/\1/')
 
 if [ -z "$LATEST_TAG" ]; then
     error "Failed to fetch latest release. Check your network connection."
