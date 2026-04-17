@@ -14,11 +14,12 @@ fn which_exists(program: &str) -> bool {
 
 /// 清屏
 pub fn clear_screen() {
-    print!("\x1B[2J\x1B[1;1H");
+    let _ = Command::new("clear").status();
 }
 
 /// 菜单模式
 pub fn menu_mode() {
+    clear_screen();
     let mut config = load_config();
     let mut running = true;
 
